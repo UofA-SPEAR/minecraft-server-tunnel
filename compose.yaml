@@ -36,6 +36,8 @@ services:
       service: base
     container_name: spearmc-proxy
 
+    security_opt:
+      - apparmor:unconfined
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
