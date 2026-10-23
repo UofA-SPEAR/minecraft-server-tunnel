@@ -1,0 +1,17 @@
+services:
+  base:
+    hostname: spearua
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    # privileged: true
+    # network_mode: host
+    # ipc: host
+    # pid: host
+    # stdin_open: true
+    # tty: true
+
+    # working_dir: /root/workspace
+    # user: root
+    # volumes:
+    #   - .:/root/workspace:rw

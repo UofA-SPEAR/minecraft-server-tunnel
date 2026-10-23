@@ -1,0 +1,20 @@
+name: spearmc
+
+services:
+  server:
+    extends:
+      file: compose-base.yaml
+      service: base
+    container_name: spearmc-server
+
+    command:
+      - bash
+
+  proxy:
+    extends:
+      file: compose-base.yaml
+      service: base
+    container_name: spearmc-proxy
+
+    command:
+      - bash
