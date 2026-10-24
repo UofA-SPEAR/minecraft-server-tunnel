@@ -1,0 +1,44 @@
+# Run ONE service per machine:
+#   Oracle VM:             docker compose up -d oracle
+#   Minecraft home PC:     docker compose up -d home
+#
+# Each side reads its own settings from a file made by scripts/gen-keys.sh:
+#   oracle.env -> Oracle VM only
+#   home.env   -> home machine only
+# (required: false lets compose start even though the other machine's file is absent.
+#  Needs Docker Compose v2.24 or newer.)
+
+services:
+  oracle:
+    extends:
+      file: compose.base.yml
+      service: wireguard-base
+    container_name: spearmc-tunnel-oracle
+    env_file:
+      - path: oracle.env
+        required: false
+    volumes:
+      - ./oracle/init.sh:/custom-cont-init.d/10-render-conf.sh:ro
+      - ./config/oracle:/config
+    ports:
+      - "51820:51820/udp"   # WireGuard
+      - "25565:25565/tcp"   # Minecraft Java, forwarded into the tunnel
+      # - "19132:19132/udp" # Bedrock/Geyser: also set FORWARD_UDP_PORTS=19132 in oracle.env
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+      - net.ipv4.ip_forward=1
+
+  home:
+    extends:
+      file: compose.base.yml
+      service: wireguard-base
+    container_name: spearmc-tunnel-home
+    # Host networking puts the wg0 interface on the host itself, so the
+    # Minecraft server (10.13.13.2:25565) is reachable through the tunnel.
+    network_mode: host
+    env_file:
+      - path: home.env
+        required: false
+    volumes:
+      - ./home/init.sh:/custom-cont-init.d/10-render-conf.sh:ro
+      - ./config/home:/config

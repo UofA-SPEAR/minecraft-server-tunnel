@@ -1,2 +1,7 @@
-keys/*
-!keys/.gitkeep
+# Secrets and your public IP
+oracle.env
+home.env
+.env
+
+# Generated WireGuard state
+config/

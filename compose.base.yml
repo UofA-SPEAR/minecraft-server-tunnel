@@ -1,0 +1,11 @@
+# Shared settings for both tunnel ends. Not run directly; compose.yml extends it.
+services:
+  wireguard-base:
+    image: lscr.io/linuxserver/wireguard:latest
+    cap_add:
+      - NET_ADMIN
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: ${TZ:-America/Edmonton}
+    restart: unless-stopped
