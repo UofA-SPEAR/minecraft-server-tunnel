@@ -2,11 +2,11 @@
 #   Oracle VM:             docker compose up -d oracle
 #   Minecraft home PC:     docker compose up -d home
 #
-# Each side reads its own settings from a file made by scripts/gen-keys.sh:
-#   oracle.env -> Oracle VM only
-#   home.env   -> home machine only
-# (required: false lets compose start even though the other machine's file is absent.
-#  Needs Docker Compose v2.24 or newer.)
+# Settings come from a file named .env next to this file (Compose reads it automatically).
+# scripts/gen-keys.sh creates oracle.env and home.env; on each machine copy the right one:
+#   Oracle VM:          cp oracle.env .env
+#   Minecraft home PC:  cp home.env .env
+# Works with any Docker Compose v2.
 
 services:
   oracle:
@@ -14,9 +14,12 @@ services:
       file: compose.base.yml
       service: wireguard-base
     container_name: spearmc-tunnel-oracle
-    env_file:
-      - path: oracle.env
-        required: false
+    environment:
+      SERVER_PRIVATE_KEY: ${SERVER_PRIVATE_KEY:-}
+      PEER_PUBLIC_KEY: ${PEER_PUBLIC_KEY:-}
+      PRESHARED_KEY: ${PRESHARED_KEY:-}
+      FORWARD_TCP_PORTS: ${FORWARD_TCP_PORTS:-}
+      FORWARD_UDP_PORTS: ${FORWARD_UDP_PORTS:-}
     volumes:
       - ./oracle/init.sh:/custom-cont-init.d/10-render-conf.sh:ro
       - ./config/oracle:/config
@@ -24,6 +27,7 @@ services:
       - "51820:51820/udp"   # WireGuard
       - "25565:25565/tcp"   # Minecraft Java, forwarded into the tunnel
       # - "19132:19132/udp" # Bedrock/Geyser: also set FORWARD_UDP_PORTS=19132 in oracle.env
+      # - "2222:2222/tcp"   # SSH to home: also set FORWARD_TCP_PORTS=25565,2222:22 in oracle.env
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
       - net.ipv4.ip_forward=1
@@ -36,9 +40,11 @@ services:
     # Host networking puts the wg0 interface on the host itself, so the
     # Minecraft server (10.13.13.2:25565) is reachable through the tunnel.
     network_mode: host
-    env_file:
-      - path: home.env
-        required: false
+    environment:
+      ORACLE_PUBLIC_IP: ${ORACLE_PUBLIC_IP:-}
+      PEER_PRIVATE_KEY: ${PEER_PRIVATE_KEY:-}
+      SERVER_PUBLIC_KEY: ${SERVER_PUBLIC_KEY:-}
+      PRESHARED_KEY: ${PRESHARED_KEY:-}
     volumes:
       - ./home/init.sh:/custom-cont-init.d/10-render-conf.sh:ro
       - ./config/home:/config

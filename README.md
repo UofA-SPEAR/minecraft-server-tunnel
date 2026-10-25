@@ -39,6 +39,8 @@ This creates `oracle.env` and `home.env` (both gitignored).
 git clone <your-repo-url> spearmc-tunnel && cd spearmc-tunnel
 # copy oracle.env here, e.g. from the machine in step 2:
 #   scp oracle.env ubuntu@YOUR_ORACLE_PUBLIC_IP:~/spearmc-tunnel/
+cp oracle.env .env
+chmod +x oracle/init.sh
 docker compose up -d oracle
 docker logs spearmc-tunnel-oracle      # should say it wrote wg0.conf
 ```
@@ -47,6 +49,8 @@ If you used the earlier manual setup, run `docker compose down` in that old fold
 ### 4. Home Minecraft machine
 ```
 cd spearmc-tunnel                      # home.env goes here
+cp home.env .env
+chmod +x home/init.sh
 sudo systemctl disable --now wg-quick@wg0 2>/dev/null   # only if you set up WireGuard by hand before
 docker compose up -d home
 sudo ufw allow in on wg0 to any port 25565 proto tcp    # if you use ufw
@@ -77,7 +81,7 @@ Connect to `YOUR_ORACLE_PUBLIC_IP:25565` from a network that is NOT your home LA
   `docker exec spearmc-tunnel-oracle iptables -t nat -L PREROUTING -n` shows the 25565 rule, and confirm the Minecraft server is listening and allowed through the firewall on wg0.
 - Oracle Ubuntu images sometimes have a blanket REJECT in host iptables: `sudo iptables -L INPUT -n --line-numbers`.
 - "Connection throttled" when several players join: set `connection-throttle: -1` in `bukkit.yml` (Paper-based). All players appear to come from 10.13.13.1, so ban by username/UUID, not IP.
-- Changing ports or keys: edit the `.env` file, then `docker compose up -d --force-recreate oracle` (or `home`).
+- Changing ports or keys: edit the `.env` file (and its `oracle.env`/`home.env` source), then `docker compose up -d --force-recreate oracle` (or `home`).
 
 ## Put it on GitHub
 ```
