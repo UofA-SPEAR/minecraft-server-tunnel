@@ -41,7 +41,9 @@ services:
     # Host networking puts the wg0 interface on the host itself, so the
     # Minecraft server (10.13.13.2:25565) is reachable through the tunnel.
     network_mode: host
-    build: ./home            # wireguard-go in userspace: no kernel module needed
+    build:                   # wireguard-go in userspace: no kernel module needed
+      context: ./home
+      network: host          # build on the host network (Docker's bridge often has no internet on Jetson)
     image: spearmc-tunnel-home
     devices:
       - /dev/net/tun:/dev/net/tun
